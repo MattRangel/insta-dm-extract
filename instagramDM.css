@@ -1,0 +1,34 @@
+body {
+    background-color: #e8ffde;
+}
+
+.chatInfoBox {
+  outline-width: 3px;
+  outline-color: #5b774f;
+  outline-style: solid;
+  background-color: #b1f095;
+}
+
+#chatsList {
+  table-layout: fixed;
+  border-spacing: 0px 15px;
+}
+
+.lft {
+  text-align: center;
+  border-right-color: #a2d98a;
+  border-right-style: solid;
+}
+
+.rght {
+  vertical-align: top;
+  padding: 10px;
+}
+
+#overlay {
+  display: none;
+}
+
+#overlay {
+    padding: 10px;
+}

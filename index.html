@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta id="meta" name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<link rel="stylesheet" type="text/css" href="instagramDM.css">
+</head>
+<body>
+
+<div id="overlay">
+<form action="javascript:scoreWord();">
+<input type="text" id="qWord" placeholder="Search.." required>
+<input type="submit" value="Score!">
+<input type="button" value="Cancel" onclick="hideScoreMenu();">
+<h4 id="scoreHeader"></h2>
+<ol id="scoreBoardList"></ol>
+</div>
+
+<div id="normalScreen">
+<p>Upload messages.json file here:</p>
+<input id="the-file-input" type="file" accept=".json">
+<input type="button" value="Upload File" onclick="readingFile();">
+<input type="text" id="mySearch" onkeyup="searchFilter()" placeholder="Search User.." style="display: none;">
+<a id="dwnld"></a>
+
+<input type="button" value="Download Selected Chats" id="downloadBtn" style="display: none;" onclick="downloadSelected()">
+<input type="button" value="Word Scoreboard (Selected Chats)" id="scoreBtn" style="display: none;" onclick="scoreMenu();">
+<table id="chatsList"></table>
+</div>
+
+
+<script>
+var node;
+function readingFile() {
+	var myJSON;
+	let reader = new FileReader();
+	let file = document.getElementById("the-file-input").files[0];
+	reader.readAsText(file);
+	reader.onload = function() {displayJSON(eval(reader.result))};
+}
+function displayJSON(msgTXT) {
+	node = msgTXT
+	document.getElementById("chatsList").innerHTML = "";
+	for (i = 0; msgTXT.length > i; ++i) {
+		if (msgTXT[i]["conversation"].length != 0) {
+			var dateRange = msgTXT[i]["conversation"][msgTXT[i]["conversation"].length - 1]["created_at"].slice(0,10) + " to " + msgTXT[i]["conversation"][0]["created_at"].slice(0,10);
+		}
+		else {
+			var dateRange = "No Messages";
+		}
+		var newItem = document.createElement('tr');
+		newItem.className = "chatInfoBox";
+		newItem.innerHTML = "<td class='lft'><input type='checkbox' id='item_" + i + "'><br><label for='item_" + i + "'>" + dateRange + "</lable></p></td><td class='rght'><label for='item_" + i + "'>" + msgTXT[i]["participants"].join(", ") + "</label></td>";
+		document.getElementById("chatsList").appendChild(newItem);
+	}
+	document.getElementById("downloadBtn").style.display="";
+	document.getElementById("scoreBtn").style.display="";
+	document.getElementById("mySearch").style.display="block";
+}
+function downloadSelected() {
+	var fileContent = "";
+	var selectedChats = [];
+	//for (i = 0; node.length > i; ++i) {
+	for (i = (node.length - 1); 0 <= i; i = i - 1) {
+		if (document.querySelector("#item_" + i).checked) {
+			//for(z = 0; node[i]["conversation"].length > z; ++z) {
+			for(z = (node[i]["conversation"].length - 1); 0 <= z; z = z - 1) {
+				if (typeof node[i]["conversation"][z]['text'] != "undefined") {
+					fileContent += "--"+node[i]["conversation"][z]["created_at"].slice(0,10) +" "+node[i]["conversation"][z]["created_at"].slice(12,19)+"+00:00 | "+ node[i]["conversation"][z]["sender"] +" : "+node[i]["conversation"][z]['text'] + "\n";
+				}
+			}
+		}
+	}
+	var dlLink = document.getElementById("dwnld");
+	var myFile = new Blob([fileContent], {type: "text/plain"});
+	window.URL = window.URL || window.webkitURL;
+	dlLink.setAttribute("href", window.URL.createObjectURL(myFile));
+	dlLink.setAttribute("download", "InstaDMs.txt");
+	document.getElementById("dwnld").click();
+}
+function searchFilter() {
+	//var querey = document.getElementById("mySearch").value.split(" ");
+	var querey = document.getElementById("mySearch").value
+	for (i = 0; node.length > i; ++i) {
+		if (document.getElementsByClassName("chatInfoBox")[i].getElementsByClassName("rght")[0].innerText.includes(querey)) {
+			document.getElementsByClassName("chatInfoBox")[i].style.display="";
+		}
+		else {
+			document.getElementsByClassName("chatInfoBox")[i].style.display="none";
+		}
+	}
+}
+function scoreMenu() {
+	document.getElementById("overlay").style.display="block";
+	document.getElementById("normalScreen").style.display="none";
+}
+function hideScoreMenu() {
+	document.getElementById("overlay").style.display="none";
+	document.getElementById("normalScreen").style.display="block";
+}
+function scoreWord() {
+	var scores = {};
+	for (i = (node.length - 1); 0 <= i; i = i - 1) {
+		if (document.querySelector("#item_" + i).checked) {
+			for(z = (node[i]["conversation"].length - 1); 0 <= z; z = z - 1) {
+				if (typeof node[i]["conversation"][z]['text'] != "undefined" && node[i]["conversation"][z]['text'].toUpperCase().includes(document.getElementById("qWord").value.toUpperCase())) {
+					if (typeof scores[node[i]["conversation"][z]["sender"]] == "undefined") {
+						scores[node[i]["conversation"][z]["sender"]] = 1;
+					}
+					else {
+						++scores[node[i]["conversation"][z]["sender"]];
+					}
+				}
+			}
+		}
+	}
+
+	var scoresList = Object.entries(scores).sort(function(a, b){return b[1] - a[1]});
+	document.getElementById("scoreBoardList").innerHTML = "";
+	document.getElementById("scoreHeader").innerHTML = "Top People who have said " + "<u>" + document.getElementById("qWord").value + "</u>";
+	for (i = 0; scoresList.length > i; ++i) {
+		var newItem = document.createElement('li');
+		newItem.innerHTML = scoresList[i][0] + ": <b>" + scoresList[i][1] + "</b>";
+		document.getElementById("scoreBoardList").appendChild(newItem);
+	}
+}
+</script>
+
+</body>
+</html>
